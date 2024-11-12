@@ -28,7 +28,7 @@ network:
       id: 10
       link: eth1
       addresses:
-        - 192.168.9.1/24
+        - 192.168.29.1/24
 EOT
 
 # Apply Netplan configuration
@@ -41,9 +41,9 @@ apt install -y isc-dhcp-server
 
 # Configure DHCP server for VLAN 10
 cat <<EOT > /etc/dhcp/dhcpd.conf
-subnet 192.168.9.0 netmask 255.255.255.0 {
-    range 192.168.9.10 192.168.9.100;
-    option routers 192.168.9.1;
+subnet 192.168.29.0 netmask 255.255.255.0 {
+    range 192.168.29.10 192.168.29.100;
+    option routers 192.168.29.1;
     option domain-name-servers 8.8.8.8, 8.8.4.4;
 }
 EOT
@@ -65,13 +65,13 @@ echo "iptables configured for NAT."
 
 # Configure route to MikroTik network
 echo "Adding route to MikroTik network..."
-ip route add 192.168.200.0/24 via 192.168.9.10  # Replace with MikroTik's IP on VLAN 10
+ip route add 192.168.200.0/24 via 192.168.29.10  # Replace with MikroTik's IP on VLAN 10
 
 # Remote Configuration for Cisco
 echo "Configuring Cisco device..."
 CISCO_USER=""
 CISCO_PASS=""
-CISCO_IP="192.168.9.10"  # Replace with the IP address of the Cisco device in VLAN 10
+CISCO_IP="192.168.29.10"  # Replace with the IP address of the Cisco device in VLAN 10
 
 sshpass -p "$CISCO_PASS" ssh -o StrictHostKeyChecking=no $CISCO_USER@$CISCO_IP << EOF
 enable
@@ -91,7 +91,7 @@ echo "Cisco configuration completed."
 echo "Configuring MikroTik device..."
 MIKROTIK_USER="admin"
 MIKROTIK_PASS="123"
-MIKROTIK_IP="192.168.9.11"  # Replace with MikroTik's IP on VLAN 10
+MIKROTIK_IP="192.168.29.11"  # Replace with MikroTik's IP on VLAN 10
 
 sshpass -p "$MIKROTIK_PASS" ssh -o StrictHostKeyChecking=no $MIKROTIK_USER@$MIKROTIK_IP << EOF
 /ip dhcp-client add interface=ether1 disabled=no
@@ -99,7 +99,7 @@ sshpass -p "$MIKROTIK_PASS" ssh -o StrictHostKeyChecking=no $MIKROTIK_USER@$MIKR
 /ip dhcp-server add name=dhcp1 interface=ether2 address-pool=dhcp_pool disabled=no
 /ip pool add name=dhcp_pool ranges=192.168.200.10-192.168.200.100
 /ip dhcp-server network add address=192.168.200.0/24 gateway=192.168.200.1
-/ip route add dst-address=0.0.0.0/0 gateway=192.168.9.1
+/ip route add dst-address=0.0.0.0/0 gateway=192.168.29.1
 EOF
 echo "MikroTik configuration completed."
 
